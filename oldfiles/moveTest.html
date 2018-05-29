@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chess</title>
+    <link rel="stylesheet" href="css/chessboard-0.3.0.min.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="js/chessboard-0.3.0.min.js"></script>
+    <script src="js/chess.js"></script>
+  </head>
+  <body>
+        <div id="board" style="width: 400px"></div>
+        <p>Status: <span id="status"></span></p>
+        <p>FEN: <span id="fen"></span></p>
+        <p>PGN: <span id="pgn"></span></p>
+
+  </body>
+
+ <script>
+var Chess = require('js/chess.js').Chess;
+var chess = new Chess();
+
+while (!chess.game_over()) {
+  var moves = chess.moves();
+  var move = moves[Math.floor(Math.random() * moves.length)];
+  chess.move(move);
+}
+console.log(chess.pgn());
+ </script>
+
+
+</html>

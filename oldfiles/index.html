@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chess</title>
+    <link rel="stylesheet" href="css/chessboard-0.3.0.min.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="js/chessboard-0.3.0.min.js"></script>
+  </head>
+  <body>
+    <div id="board1" style="width: 600px" ></div>
+    <input type="button" id="nextPuzzle" value="Next Puzzle">
+    <input type="button" id="nextMove" value="Next Move">
+
+    Solution: <textarea id = "solution"> </textarea>
+
+
+    <script>
+
+        var positions =['6R1/5q1p/3Qp1pk/p3Pp2/Ppr2P2/2P4P/6PK/8 w - - 0 1','7R/5p2/p4pk1/2pPpN2/2P3PP/2r5/3b1P2/6K1 w - - 0 1'];
+
+//each individual solution
+        var puzzleOneSolution =['Qd8','Rxf4','g4'];
+
+        var allSolutions =[puzzleOneSolution];
+
+        document.getElementById('solution').value=allSolutions[0];
+
+
+
+        var i =0;
+
+        var boardInfo={
+            position:positions[i]
+};
+
+        var board1 = ChessBoard('board1',boardInfo);
+
+
+        $('#nextPuzzle').click(function(){
+
+            i+=1;
+            if (i==positions.length)
+            {
+              i=0;
+            }
+
+        boardInfo.position=positions[i];
+
+var board1 = ChessBoard('board1',boardInfo);
+            });
+
+             $('#nextMove').click(function(){
+
+
+
+
+             });
+
+
+    </script>
+  </body>
+</html>
