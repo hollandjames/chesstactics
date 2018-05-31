@@ -22,6 +22,16 @@
         <button onclick = "Forward()">Forward</button>
         <button onclick = "undoMove()">Back</button>
         <button onclick = "nextPuzzle()">Next Puzzle</button>
+        <button onclick = "previousPuzzle()">Previous Puzzle</button>
+
+            <select id="dropDown">
+
+            </select>
+
+
+
+
+
 </div>
 <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3" >
   </div>
@@ -31,18 +41,21 @@
 
 
   <script>
-    k=0;
-var puzzleArray =['6R1/5q1p/3Qp1pk/p3Pp2/Ppr2P2/2P4P/6PK/8 w - - 0 1','rnbqkbnr/ppp1p1pp/8/3p1p2/4P3/2P5/PP1P1PPP/RNBQKBNR w KQkq - 0 3'];
+
+
+
+ var k=0;
+
+  var puzzleArray =['6R1/5q1p/3Qp1pk/p3Pp2/Ppr2P2/2P4P/6PK/8 w - - 0 1','rnbqkbnr/ppp1p1pp/8/3p1p2/4P3/2P5/PP1P1PPP/RNBQKBNR w KQkq - 0 3'];
+
   var board,
-  //rnbqkbnr/ppp1p1pp/8/3p1p2/4P3/2P5/PP1P1PPP/RNBQKBNR w KQkq - 0 3
-  // original 6R1/5q1p/3Qp1pk/p3Pp2/Ppr2P2/2P4P/6PK/8 w - - 0 1
   game = new Chess(puzzleArray[k]),
 
   statusEl = $('#status'),
   fenEl = $('#fen'),
   pgnEl = $('#pgn');
 
-  var i =0;
+var i =0;
 var solutionOne = ['d6d8','c4f4','g2g4','f5g4','d8h4'];
 var solutionTwo =['e4d5'];
 var allSolutions=[solutionOne,solutionTwo];
@@ -59,6 +72,7 @@ var onDragStart = function(source, piece, position, orientation) {
     return false;
   }
 };
+var isSolved = false;
 
 var onDrop = function(source, target,piece) {
 
@@ -70,33 +84,15 @@ var onDrop = function(source, target,piece) {
     promotion: 'q' // NOTE: always promote to a queen for example simplicity
   });
 
-  // illegal move
-
-
-
-//if (move === null) return 'snapback';
 if (move === null) {return 'snapback';}
 
 
-  else if(move!== null){
+else if(move!== null){
 var fromSq= move.from;
-    var toSq = move.to;
-//var thisPiece = move.piece;
-//window.alert(thisPiece+sq);
-
-//solution[i].toLowerCase()
-// call in a function every time - this breaks code?
-// pawn not clarified as a piece
-
+var toSq = move.to;
 
 var puzSolution = allSolutions[k][i];
-// old method .toLowerCase().replace('x','')
-//window.alert(cleanSolution);
-//window.alert(fromSq+toSq);
-//window.alert((thisPiece+sq+fromsq).replace('p',''));
-
 var incorrectMove = Boolean(fromSq+toSq!==puzSolution);
-window.alert(incorrectMove);
 
   if (incorrectMove){
     game.undo();
@@ -106,19 +102,28 @@ window.alert(incorrectMove);
 
     }
 }
-//else if (move === null) return 'snapback';
-//shake box?
-//notify js
-  i+=1;
-  $("#board").notify("Correct Solution!");
-  updateStatus();
+
+i+=1;
+$("#board").notify("Correct!",{ position:"right", className:"success"});
+updateStatus();
+compPlayMove();
+
+
 };
+
+
+
+function compPlayMove(){
+  game.move(allSolutions[k][i], {sloppy: true});
+  i+=1;
+  updateStatus();
+}
 
 var j =0;
 
 function incorrectSolutionAlert(){
   j+=1;
-  $("#board").notify("Incorrect Attempt number " + j );
+  $("#board").notify("Incorrect Attempt number " + j ,{ position:"right", className:"error"});
 }
 
 // update the board position after the piece snap
@@ -176,16 +181,15 @@ updateStatus();
 
 
 function Forward(){
-  //sloppy allows for sq to sq format
-  game.move(solution[i], {sloppy: true});
 
-  if(i<solution.length-1)
+  game.move(allSolutions[k][i], {sloppy: true});
+
+  if(i<allSolutions[k].length-1)
   {
     i+=1;
   }
   board.position(game.fen());
 }
-
 
 function undoMove(){
 
@@ -195,12 +199,44 @@ board.position(game.fen());
 }
 
 function nextPuzzle(){
-k+=1;
-  game = new Chess(puzzleArray[k]);
-  board.position(game.fen());
-
+if(k<allSolutions.length-1){
+  k+=1;
 }
 
+i=0;
+  game = new Chess(puzzleArray[k]);
+  board.position(game.fen());
+}
+function previousPuzzle(){
+  if(k>=1)
+{
+k-=1;
+}
+i=0;
+  game = new Chess(puzzleArray[k]);
+  board.position(game.fen());
+}
+
+var players = ["Kasparov-Mamedyarov", "Beliavsky-Timman"];
+var select = document.getElementById("dropDown");
+
+for (var g = 0;g<players.length;g++){
+  var opt = document.createElement("option");
+  opt.text = players[g];
+  opt.value = puzzleArray[g];
+  opt.index=g;
+
+  select.appendChild(opt);
+}
+select.onchange = function(){
+  i=0;
+  var k=this.index+1;
+  //k=1;
+  game = new Chess(this.value);
+  board.position(game.fen());
+
+  //window.alert(k);
+}
 
   </script>
 
