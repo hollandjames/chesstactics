@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Chess</title>
+    <title>Chess Tactics Trainer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="css/chessboard-0.3.0.min.css">
     <link rel="stylesheet" href="css/style.css">
     <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
@@ -9,28 +10,42 @@
     <script src="js/chessboard-0.3.0.min.js"></script>
     <script src="js/chess.js"></script>
     <script src="js/notify.min.js"></script>
+    <script src="js/variables.js"></script>
   </head>
   <body>
+
+      <ul>
+          <li><a class="active" href="home.html">Home</a></li>
+          <li><a href="about.html">About</a></li>
+        </ul>
+
+
+
+
    <div class = "row">
       <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3" >
       </div>
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6" >
-        <div id="board"></div>
-        <p>Status: <span id="status"></span></p>
 
-        <button onclick = "Forward()">Forward</button>
-        <button onclick = "undoMove()">Back</button>
+        <div id = "pageTitle"> </div>
+        <div id = "status"></div>
+
+        <div id="board"></div>
+
+
+
         <button onclick = "nextPuzzle()">Next Puzzle</button>
         <button onclick = "previousPuzzle()">Previous Puzzle</button>
+        <button onclick = "flipBoard()">Flip</button>
+        
+
+
 
             <select id="dropDown">
 
+
             </select>
-
-
-
-
 
 </div>
 <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3" >
@@ -43,10 +58,8 @@
   <script>
 
 
-
+var isPressed = false;
  var k=0;
-
-  var puzzleArray =['6R1/5q1p/3Qp1pk/p3Pp2/Ppr2P2/2P4P/6PK/8 w - - 0 1','rnbqkbnr/ppp1p1pp/8/3p1p2/4P3/2P5/PP1P1PPP/RNBQKBNR w KQkq - 0 3'];
 
   var board,
   game = new Chess(puzzleArray[k]),
@@ -56,14 +69,7 @@
   pgnEl = $('#pgn');
 
 var i =0;
-var solutionOne = ['d6d8','c4f4','g2g4','f5g4','d8h4'];
-var solutionTwo =['e4d5'];
-var allSolutions=[solutionOne,solutionTwo];
-//original solution ['d6d8','c4f4','g2g4','f5g4','d8h4'];
 
-
-// do not pick up pieces if the game is over
-// only pick up pieces for the side to move
 var onDragStart = function(source, piece, position, orientation) {
 
   if (game.game_over() === true ||
@@ -94,7 +100,7 @@ var toSq = move.to;
 var puzSolution = allSolutions[k][i];
 var incorrectMove = Boolean(fromSq+toSq!==puzSolution);
 
-  if (incorrectMove){
+  if (incorrectMove && !isSolved){
     game.undo();
     incorrectSolutionAlert();
     // snapback kills process
@@ -104,14 +110,21 @@ var incorrectMove = Boolean(fromSq+toSq!==puzSolution);
 }
 
 i+=1;
-$("#board").notify("Correct!",{ position:"right", className:"success"});
+if(i == allSolutions[k].length){
+  $("#board").notify("Puzzle Solved",{ position:"right", className:"info"});
+}
+
+else if(i>allSolutions[k].length){
+  $("#board").notify("Analysis",{ position:"right", className:"warn",autoHide: false});
+}
+
+else{
+  $("#board").notify("Correct!",{ position:"right", className:"success"});
+}
+
 updateStatus();
 compPlayMove();
-
-
 };
-
-
 
 function compPlayMove(){
   game.move(allSolutions[k][i], {sloppy: true});
@@ -123,7 +136,7 @@ var j =0;
 
 function incorrectSolutionAlert(){
   j+=1;
-  $("#board").notify("Incorrect Attempt number " + j ,{ position:"right", className:"error"});
+  $("#board").notify("Incorrect Attempt Number: " + j ,{ position:"right", className:"error"});
 }
 
 // update the board position after the piece snap
@@ -142,7 +155,7 @@ var updateStatus = function() {
 
   // checkmate?
   if (game.in_checkmate() === true) {
-    status = 'Game over, ' + moveColor + ' is in checkmate.';
+    status = 'Problem Solved!';
   }
 
   // draw?
@@ -152,12 +165,21 @@ var updateStatus = function() {
 
   // game still on
   else {
-    status = moveColor + ' to move';
+    status = moveColor + ' to play and win';
 
     // check?
     if (game.in_check() === true) {
       status += ', ' + moveColor + ' is in check';
     }
+
+    if (i>=allSolutions[k].length+1)
+    {
+      status = 'Problem Solved!';
+      isSolved=true;
+    }
+
+
+
   }
 
   statusEl.html(status);
@@ -170,7 +192,9 @@ var cfg = {
   position: puzzleArray[k],
   onDragStart: onDragStart,
   onDrop: onDrop,
-  onSnapEnd: onSnapEnd
+  onSnapEnd: onSnapEnd,
+  orientation:'white'
+
 };
 
 
@@ -178,10 +202,9 @@ board = ChessBoard('board', cfg);
 
 updateStatus();
 
-
-
+/*
 function Forward(){
-
+isPressed = true;
   game.move(allSolutions[k][i], {sloppy: true});
 
   if(i<allSolutions[k].length-1)
@@ -192,20 +215,27 @@ function Forward(){
 }
 
 function undoMove(){
+  isPressed = true;
 
 if(i>0){i-=1;}
 game.undo();
 board.position(game.fen());
 }
-
+*/
 function nextPuzzle(){
 if(k<allSolutions.length-1){
   k+=1;
 }
 
 i=0;
+
   game = new Chess(puzzleArray[k]);
   board.position(game.fen());
+  changeTitle();
+  checkOrientation();
+  updateStatus();
+  isSolved = false;
+
 }
 function previousPuzzle(){
   if(k>=1)
@@ -215,28 +245,62 @@ k-=1;
 i=0;
   game = new Chess(puzzleArray[k]);
   board.position(game.fen());
+  changeTitle();
+  checkOrientation();
+  updateStatus();
+  isSolved = false;
+
 }
 
-var players = ["Kasparov-Mamedyarov", "Beliavsky-Timman"];
+
 var select = document.getElementById("dropDown");
 
 for (var g = 0;g<players.length;g++){
   var opt = document.createElement("option");
-  opt.text = players[g];
+  opt.text = g+1 + ". "+ players[g];
   opt.value = puzzleArray[g];
-  opt.index=g;
-
   select.appendChild(opt);
 }
 select.onchange = function(){
   i=0;
-  var k=this.index+1;
-  //k=1;
+  k=puzzleArray.indexOf(this.value);
   game = new Chess(this.value);
   board.position(game.fen());
+  changeTitle();
+  checkOrientation();
+  updateStatus();
+  isSolved = false;
 
+ // var k = puzzleArray.indexOf(this.value);
   //window.alert(k);
 }
+
+
+function changeTitle(){
+
+var pageTitle = document.getElementById("pageTitle");
+$('#pageTitle').empty();
+var title = document.createElement("h1");
+title.textContent = k+1 +". " + players[k];
+pageTitle.appendChild(title);
+}
+
+changeTitle();
+
+//window.alert(game.turn());
+function checkOrientation(){
+if (game.turn() === 'b') {board.orientation('black');}
+
+else{
+  board.orientation('white');
+}
+}
+
+function flipBoard(){
+  board.flip();
+}
+
+
 
   </script>
 
